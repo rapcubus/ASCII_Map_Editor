@@ -80,7 +80,11 @@ class AsciiEditor {
         lucide.createIcons();
     }
 
-    createGrid(w, h) {
+    createGrid(w, h, preserveData = false) {
+        const oldGrid = preserveData ? JSON.parse(JSON.stringify(this.grid)) : null;
+        const oldW = this.width;
+        const oldH = this.height;
+
         this.width = w;
         this.height = h;
         const gridElement = document.getElementById('map-grid');
@@ -95,15 +99,34 @@ class AsciiEditor {
             for (let x = 0; x < w; x++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
+                
+                // 5칸마다 보조선 추가 (인덱스는 0부터 시작하므로 x+1, y+1 기준)
+                if ((x + 1) % 5 === 0 && x !== w - 1) {
+                    cell.classList.add('grid-line-v');
+                }
+                if ((y + 1) % 5 === 0 && y !== h - 1) {
+                    cell.classList.add('grid-line-h');
+                }
+
                 cell.dataset.x = x;
                 cell.dataset.y = y;
-                cell.textContent = ' ';
+                
+                // 데이터 복사
+                let char = ' ';
+                if (oldGrid && y < oldH && x < oldW) {
+                    char = oldGrid[y][x];
+                }
+                
+                cell.textContent = ' '; // updateCell에서 실제 텍스트 설정
 
                 cell.addEventListener('mousedown', (e) => this.handleCellDown(e, x, y));
                 cell.addEventListener('mouseenter', (e) => this.handleCellEnter(e, x, y));
 
                 gridElement.appendChild(cell);
                 this.cellElements[y][x] = cell;
+                
+                // 초기 문자 설정 및 스타일 적용
+                this.updateCell(x, y, char);
             }
         }
     }
@@ -538,12 +561,12 @@ class AsciiEditor {
             if (w > 0 && h > 0) {
                 this.showConfirm(
                     '그리드 크기 변경',
-                    '크기를 변경하면 작성 중인 맵 데이터가 모두 초기화됩니다.\n정말 변경하시겠습니까?',
+                    '그리드 크기를 변경하시겠습니까?\n기존 데이터는 좌상단 기준으로 유지되지만, 범위 밖의 데이터는 삭제될 수 있습니다.',
                     '변경 실행',
                     () => {
-                        this.createGrid(w, h);
+                        this.createGrid(w, h, true); // 데이터 보존 옵션 true
                         this.saveToHistory();
-                        this.checkResizeDisabled(); // 변경 후 다시 체크
+                        this.checkResizeDisabled();
                     }
                 );
             }

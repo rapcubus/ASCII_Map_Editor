@@ -1,0 +1,16 @@
+{
+  "name": "ascii-map-editor",
+  "version": "1.0.0",
+  "description": "A premium ASCII map editor for web",
+  "main": "main.js",
+  "scripts": {
+    "dev": "npx -y serve ."
+  },
+  "keywords": [
+    "ascii",
+    "map",
+    "editor"
+  ],
+  "author": "",
+  "license": "ISC"
+}
